@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Jellyfin Cinema Poster</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- GLOBAL RESET --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --primary: #00A4DC; /* Jellyfin Blue */
+            --accent: #E50914;  /* Cinema Red */
+        }
+
+        body, html {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Montserrat', sans-serif;
+            color: white; 
+        }
+
+        /* 1. BACKGROUND LAYER (Blurred) */
+        #bg-layer {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-size: cover; background-position: center;
+            filter: blur(60px) brightness(0.4);
+            z-index: 1;
+            transition: opacity 1s;
+        }
+
+        /* 2. TOP HEADER (Now Playing) */
+        #top-bar {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 15vh;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
+            z-index: 50; 
+            display: flex; justify-content: center; padding-top: 25px;
+            opacity: 0; transition: opacity 0.5s;
+        }
+
+        #status-text {
+            font-family: 'Bebas Neue', sans-serif; font-size: 3rem;
+            color: var(--accent); letter-spacing: 4px;
+            display: flex; align-items: center; gap: 15px;
+            text-shadow: 0 0 20px rgba(0,0,0,1);
+        }
+
+        /* Equalizer Animation */
+        .eq-bar { width: 6px; background: var(--accent); animation: eq 0.8s infinite ease-in-out; }
+        .eq-bar:nth-child(2) { height: 30px; animation-delay: 0.1s; }
+        .eq-bar:nth-child(1), .eq-bar:nth-child(3) { height: 15px; }
+        @keyframes eq { 0%,100%{height:10px;opacity:0.5} 50%{height:35px;opacity:1} }
+
+        /* 3. MAIN WRAPPER */
+        #wrapper {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+        }
+
+        /* 4. POSTER CONTAINER */
+        #poster-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: flex-start;
+            padding-top: 5vh; 
+            z-index: 5;
+        }
+
+        .poster-image {
+            height: 95vh; 
+            width: auto; max-width: 95vw;
+            object-fit: contain;
+            box-shadow: 0 10px 60px rgba(0,0,0,0.8);
+            transform: scale(1);
+        }
+
+        /* 5. GRADIENT OVERLAY (Text protection) */
+        #gradient-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; 
+            height: 50vh; 
+            background: linear-gradient(to top, rgba(0,0,0,1) 10%, rgba(0,0,0,0.8) 40%, transparent 100%);
+            z-index: 10;
+        }
+
+        /* 6. INFO LAYER */
+        #info-layer {
+            position: absolute; bottom: 30px; left: 0; width: 100%;
+            z-index: 20; 
+            text-align: center;
+            color: #ffffff !important; 
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 5rem; line-height: 0.9; margin-bottom: 12px;
+            color: #ffffff;
+            text-shadow: 2px 2px 0px #000, 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        .tagline {
+            font-style: italic; font-weight: 300; font-size: 1.3rem;
+            color: #dddddd; margin-bottom: 8px;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .meta-row {
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+            margin-bottom: 15px;
+            font-size: 1.1rem; color: #eeeeee;
+            text-shadow: 1px 1px 4px #000; font-weight: 600;
+        }
+
+        .badge {
+            border: 1px solid rgba(255,255,255,0.5);
+            background: rgba(0,0,0,0.3);
+            padding: 3px 10px; border-radius: 4px;
+            font-size: 0.85rem; font-weight: 700;
+        }
+
+        /* 7. PROGRESS BAR */
+        #progress-container {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 8px; background: rgba(255,255,255,0.15);
+            z-index: 100;
+        }
+
+        #progress-fill {
+            height: 100%; width: 0%;
+            background: var(--primary);
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .time-label {
+            position: absolute; bottom: 15px;
+            font-weight: 700; font-size: 1.1rem; color: #ffffff;
+            text-shadow: 2px 2px 4px #000;
+            opacity: 0; transition: opacity 0.5s; z-index: 101;
+        }
+        #t-curr { left: 20px; }
+        #t-tot { right: 20px; }
+
+        .fade-out { opacity: 0 !important; transform: scale(0.98); }
+
+        /* Vertical Monitor Support */
+        @media (aspect-ratio: 9/16) {
+            .poster-image { height: 75vh; }
+            h1 { font-size: 4rem; }
+            #gradient-overlay { height: 45vh; }
+            #info-layer { bottom: 50px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="bg-layer"></div>
+
+    <div id="top-bar">
+        <div id="status-text">
+            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+            &nbsp; NOW PLAYING &nbsp;
+            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+        </div>
+    </div>
+
+    <div id="wrapper">
+        <div id="poster-container">
+            <img id="poster-img" class="poster-image" src="" alt="">
+        </div>
+        
+        <div id="gradient-overlay"></div>
+
+        <div id="info-layer">
+            <div class="tagline" id="tagline"></div>
+            <h1 id="title">Loading...</h1>
+            
+            <div class="meta-row">
+                <span id="year"></span> &bull;
+                <span class="badge" id="res"></span> &bull;
+                <span id="audio"></span> &bull;
+                <span id="dur"></span>
+            </div>
+        </div>
+    </div>
+
+    <span class="time-label" id="t-curr">0:00</span>
+    <span class="time-label" id="t-tot">0:00</span>
+    
+    <div id="progress-container">
+        <div id="progress-fill"></div>
+    </div>
+
+    <script>
+        const RANDOM_DURATION = 30000;
+        const PLAYING_CHECK_INTERVAL = 3000;
+        
+        let currentMode = 'random';
+        let currentTitle = '';
+        let startTime;
+        let animationFrame;
+        let timeoutHandle;
+
+        const elWrapper = document.getElementById('wrapper');
+        const elBg = document.getElementById('bg-layer');
+        const elPosterImg = document.getElementById('poster-img');
+        const elFill = document.getElementById('progress-fill');
+        const elTopBar = document.getElementById('top-bar');
+        const elTCurr = document.getElementById('t-curr');
+        const elTTot = document.getElementById('t-tot');
+
+        async function fetchNext() {
+            try {
+                const response = await fetch('/api/next');
+                const data = await response.json();
+                handleData(data);
+            } catch (e) { setTimeout(fetchNext, 5000); }
+        }
+
+        function handleData(data) {
+            if (data.mode === 'playing' && data.title === currentTitle && currentMode === 'playing') {
+                updateLiveStats(data);
+                timeoutHandle = setTimeout(fetchNext, PLAYING_CHECK_INTERVAL);
+                return;
+            }
+            transitionTo(data);
+        }
+
+        function transitionTo(data) {
+            const img = new Image();
+            img.src = data.image_url;
+            
+            img.onload = () => {
+                // Fade Out
+                elWrapper.classList.add('fade-out');
+                elBg.style.opacity = 0;
+                
+                // Reset Animations
+                if (animationFrame) cancelAnimationFrame(animationFrame);
+                elFill.style.transition = 'none';
+                elFill.style.width = '0%';
+                elPosterImg.style.transition = 'none';
+                elPosterImg.style.transform = 'scale(1.0)';
+
+                setTimeout(() => {
+                    // Update Content
+                    updateDOM(data);
+                    elBg.style.backgroundImage = `url('${data.image_url}')`;
+                    currentMode = data.mode;
+                    currentTitle = data.title;
+                    configureMode(data);
+                    
+                    void elPosterImg.offsetWidth; 
+
+                    requestAnimationFrame(() => {
+                        // Fade In
+                        elWrapper.classList.remove('fade-out');
+                        elBg.style.opacity = 1;
+                        elFill.style.transition = 'width 0.2s linear';
+
+                        // Start Zoom Animation
+                        elPosterImg.style.transition = 'transform 18s ease-out';
+                        elPosterImg.style.transform = 'scale(1.08)';
+
+                        if (currentMode === 'random') startTimer();
+                    });
+                }, 600);
+            };
+        }
+
+        function configureMode(data) {
+            if (data.mode === 'playing') {
+                elTopBar.style.opacity = 1;
+                elTCurr.style.opacity = 1; 
+                elTTot.style.opacity = 1;
+                elFill.style.backgroundColor = 'var(--accent)';
+                elFill.style.boxShadow = '0 0 20px var(--accent)';
+                updateLiveStats(data);
+                timeoutHandle = setTimeout(fetchNext, PLAYING_CHECK_INTERVAL);
+            } else {
+                elTopBar.style.opacity = 0;
+                elTCurr.style.opacity = 0; 
+                elTTot.style.opacity = 0;
+                elFill.style.backgroundColor = 'var(--primary)';
+                elFill.style.boxShadow = '0 0 20px var(--primary)';
+            }
+        }
+
+        function updateLiveStats(data) {
+            elFill.style.width = data.progress_percent + '%';
+            elTCurr.innerText = data.time_current;
+            elTTot.innerText = data.time_total;
+        }
+
+        function updateDOM(data) {
+            elPosterImg.src = data.image_url;
+            document.getElementById('title').innerText = data.title;
+            const t = data.tagline ? `"${data.tagline}"` : "";
+            document.getElementById('tagline').innerText = t;
+            
+            document.getElementById('year').innerText = data.year;
+            document.getElementById('res').innerText = data.resolution;
+            document.getElementById('audio').innerText = data.audio;
+            document.getElementById('dur').innerText = data.duration_badge;
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            elFill.style.width = '0%';
+            function step() {
+                if (currentMode === 'playing') return;
+                const elapsed = Date.now() - startTime;
+                const pct = Math.min((elapsed / RANDOM_DURATION) * 100, 100);
+                elFill.style.width = pct + '%';
+                if (elapsed < RANDOM_DURATION) animationFrame = requestAnimationFrame(step);
+                else fetchNext();
+            }
+            setTimeout(() => { animationFrame = requestAnimationFrame(step); }, 50);
+        }
+
+        fetchNext();
+    </script>
+</body>
+</html>
