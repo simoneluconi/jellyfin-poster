@@ -1,0 +1,18 @@
+services:
+  jellyfin-poster:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jellyfin-poster
+    restart: unless-stopped
+
+    # Environment variables passed directly into the app
+    environment:
+      PORT: "5000"
+      DEBUG: "False"
+      JELLYFIN_URL: "http://JELLYFIN_URL:PORT" # http://IP:8096
+      JELLYFIN_API_KEY: "YOUR_API_KEY"
+
+    # Expose the application port to the host
+    ports:
+      - "5000:5000"
