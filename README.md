@@ -14,7 +14,7 @@ Designed with a premium "Cinema Grade" aesthetic, featuring smooth animations, m
 
 * **🔄 Smart Carousel:** Randomly cycles through movies in your library with a smooth "Ken Burns" zoom effect and a crossfade between posters (no fade to black). The time per poster is configurable.
 * **⚡ Now Playing Detection:** Automatically interrupts the carousel (within ~3 seconds) when you start watching a movie or a TV episode.
-    * Displays a dedicated "NOW PLAYING" header with an animated equalizer (shows "PAUSED" when playback is paused).
+    * Displays a cinema marquee sign with chasing light bulbs: "NOW PLAYING", or "INTERMISSION" (lights off) when playback is paused.
     * Shows a live progress bar synced with your playback.
     * Displays start/end times and formatted duration.
     * TV episodes show the series poster and logo, with `S01E02 · Episode title` below the title.

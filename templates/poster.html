@@ -52,28 +52,70 @@
         /* 2. TOP HEADER (Now Playing) */
         #top-bar {
             position: absolute; top: 0; left: 0; right: 0;
-            height: 15vh;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
+            height: 16vh;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0) 100%);
             z-index: 50;
-            display: flex; justify-content: center; padding-top: 25px;
+            display: flex; justify-content: center; align-items: flex-start;
+            padding-top: 2.2vh;
             opacity: 0; transition: opacity 0.5s;
+            pointer-events: none;
         }
 
-        #status-text {
-            font-family: 'Bebas Neue', sans-serif; font-size: 3rem;
-            color: var(--accent); letter-spacing: 4px;
-            display: flex; align-items: center; gap: 15px;
-            text-shadow: 0 0 20px rgba(0,0,0,1);
+        /* Cinema marquee sign: gold frame, chasing light bulbs, glowing letters */
+        #marquee {
+            position: relative;
+            padding: 22px 46px 20px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #2b1709 0%, #160b04 100%);
+            border: 2px solid #b98a3c;
+            box-shadow:
+                0 0 0 4px rgba(0, 0, 0, 0.65),          /* dark outer rim */
+                0 0 0 5px rgba(185, 138, 60, 0.45),      /* thin second gold line */
+                0 12px 40px rgba(0, 0, 0, 0.75),
+                0 0 36px rgba(255, 170, 60, 0.28),       /* warm light spill */
+                inset 0 0 20px rgba(0, 0, 0, 0.85);
         }
 
-        /* Equalizer Animation */
-        .eq-bar { width: 6px; background: var(--accent); animation: eq 0.8s infinite ease-in-out; }
-        .eq-bar:nth-child(2) { height: 30px; animation-delay: 0.1s; }
-        .eq-bar:nth-child(1), .eq-bar:nth-child(3) { height: 15px; }
-        @keyframes eq { 0%,100%{height:10px;opacity:0.5} 50%{height:35px;opacity:1} }
+        /* Rows of bulbs: dim bulbs everywhere + a lit layer that steps by one bulb (chase effect) */
+        .bulbs {
+            position: absolute; left: 16px; right: 16px; height: 12px;
+            background-image:
+                radial-gradient(circle, #fff6d0 0 2.5px, rgba(255, 196, 100, 0.95) 3.5px, rgba(255, 160, 60, 0) 6px),
+                radial-gradient(circle, rgba(255, 196, 110, 0.28) 0 2.5px, rgba(255, 196, 110, 0) 3.5px);
+            background-size: 28px 12px, 14px 12px;
+            background-repeat: repeat-x;
+            background-position: -7px 50%, 0 50%;
+            filter: drop-shadow(0 0 3px rgba(255, 180, 80, 0.9));
+            animation: chase 0.8s steps(2) infinite;
+        }
+        .bulbs.top { top: 4px; }
+        .bulbs.bottom { bottom: 4px; animation-direction: reverse; }
+        @keyframes chase {
+            from { background-position: -7px 50%, 0 50%; }
+            to   { background-position: 21px 50%, 0 50%; }
+        }
 
-        /* Paused playback */
-        #top-bar.paused .eq-bar { animation-play-state: paused; opacity: 0.5; }
+        #status-label {
+            display: block;
+            font-family: 'Bebas Neue', sans-serif; font-size: 2.7rem; line-height: 1;
+            letter-spacing: 10px; padding-left: 10px; /* balance the trailing letter-spacing */
+            color: #fff5da;
+            text-shadow:
+                0 0 6px rgba(255, 214, 140, 0.9),
+                0 0 18px rgba(255, 160, 60, 0.65),
+                0 0 42px rgba(255, 120, 30, 0.4);
+            animation: glow 4s ease-in-out infinite;
+        }
+        @keyframes glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.88; } }
+
+        /* Paused playback: "intermission", lights stop and dim */
+        #top-bar.paused .bulbs { animation-play-state: paused; opacity: 0.35; filter: none; }
+        #top-bar.paused #status-label {
+            animation: none; color: #d8ccb4;
+            text-shadow: 0 0 6px rgba(255, 214, 140, 0.35);
+        }
+        #top-bar.paused #marquee { box-shadow: 0 0 0 4px rgba(0,0,0,0.65), 0 0 0 5px rgba(185,138,60,0.3),
+                                               0 12px 40px rgba(0,0,0,0.75), inset 0 0 20px rgba(0,0,0,0.85); }
 
         /* 3. POSTER CONTAINER */
         .poster-container {
@@ -195,10 +237,10 @@
 <body>
 
     <div id="top-bar">
-        <div id="status-text">
-            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
-            &nbsp; <span id="status-label">NOW PLAYING</span> &nbsp;
-            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+        <div id="marquee">
+            <div class="bulbs top"></div>
+            <span id="status-label">NOW PLAYING</span>
+            <div class="bulbs bottom"></div>
         </div>
     </div>
 
@@ -259,6 +301,17 @@
         const elStatus = document.getElementById('status-label');
         const elTCurr = document.getElementById('t-curr');
         const elTTot = document.getElementById('t-tot');
+
+        // Marquee: size the bulb rows to a whole number of bulbs, centered, so none is cut at the edges
+        const elMarquee = document.getElementById('marquee');
+        const BULB_SPACING = 14;  // keep in sync with the dim bulb background-size in CSS
+        new ResizeObserver(() => {
+            const width = elMarquee.clientWidth;
+            const row = Math.floor((width - 24) / BULB_SPACING) * BULB_SPACING;
+            elMarquee.querySelectorAll('.bulbs').forEach(b => {
+                b.style.left = b.style.right = `${(width - row) / 2}px`;
+            });
+        }).observe(elMarquee);
 
         // Two slides used alternately: one on screen, one receiving the next poster
         const slideTemplate = document.getElementById('slide-template');
@@ -399,7 +452,7 @@
             elTCurr.innerText = data.time_current;
             elTTot.innerText = data.time_total;
             elTopBar.classList.toggle('paused', !!data.paused);
-            elStatus.innerText = data.paused ? 'PAUSED' : 'NOW PLAYING';
+            elStatus.innerText = data.paused ? 'INTERMISSION' : 'NOW PLAYING';
         }
 
         function fillSlide(slide, data, hasLogo) {
