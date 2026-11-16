@@ -1,7 +1,7 @@
 # 🎬 Jellyfin Cinema Poster
 
 ![Project Status](https://img.shields.io/badge/status-active-brightgreen)
-![Python](https://img.shields.io/badge/python-3.8%2B-blue)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Jellyfin](https://img.shields.io/badge/jellyfin-compatible-purple)
 
 A beautiful, immersive digital signage solution for your Home Theater. This application turns any vertical monitor into a **dynamic digital poster** that cycles through your Jellyfin library and automatically switches to a "Now Playing" mode when a movie starts.
@@ -41,7 +41,7 @@ Designed with a premium "Cinema Grade" aesthetic, featuring smooth animations, m
 
 ## 🛠️ Prerequisites
 
-* **Python 3.8+** installed on your machine.
+* **Python 3.11+** installed on your machine (tested up to Python 3.15), or **Docker**.
 * A running **Jellyfin Server** (tested with Jellyfin 12; the app uses the standard `Authorization: MediaBrowser ...` header, which also works with older 10.x servers).
 * A Jellyfin **API Key**.
 * Optional: **OpenCV** (installed by `requirements.txt`) for automatic title detection. Without it the app still works and simply always shows the title.
@@ -117,7 +117,13 @@ Designed with a premium "Cinema Grade" aesthetic, featuring smooth animations, m
         chrome.exe --kiosk http://localhost:5000 --incognito
         ```
 
-4.  **Multiple screens:** open the same URL on every screen. Each browser tab is tracked as a separate screen; enable `SYNC_SCREENS=True` to keep them all showing different movies. A screen that is closed frees its movie immediately (or after 90 seconds if it simply loses connection).
+4.  **Docker (alternative):** set your Jellyfin URL and API key (and any option from the table above) in `docker-compose.yml`, then:
+    ```bash
+    docker compose up -d --build
+    ```
+    Title detection results are kept in the `./cache` folder mounted into the container. The `.env` file is not copied into the image (see `.dockerignore`): with Docker, configure everything in `docker-compose.yml`.
+
+5.  **Multiple screens:** open the same URL on every screen. Each browser tab is tracked as a separate screen; enable `SYNC_SCREENS=True` to keep them all showing different movies. A screen that is closed frees its movie immediately (or after 90 seconds if it simply loses connection).
 
 ---
 
@@ -143,6 +149,8 @@ jellyfin-poster/
 ├── app.py              # Main Python/Flask backend logic
 ├── title_detection.py  # Finds the title logo printed on a poster (SHOW_TITLE=auto)
 ├── requirements.txt    # Python dependencies
+├── Dockerfile          # Container image
+├── docker-compose.yml  # Docker setup (configuration + cache volume)
 ├── .env                # Private configuration (Excluded from Git)
 ├── .env.example        # Public configuration template
 ├── cache/              # Title detection results (created at runtime, excluded from Git)

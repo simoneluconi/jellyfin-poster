@@ -1,6 +1,6 @@
-flask
-requests
-python-dotenv
+flask>=3.1
+requests>=2.32
+python-dotenv>=1.1
 # Needed only for SHOW_TITLE=auto (detects the title logo printed on posters)
-opencv-python-headless
-numpy
+opencv-python-headless>=4.10
+numpy>=2.0

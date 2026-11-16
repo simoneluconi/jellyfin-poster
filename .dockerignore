@@ -1,0 +1,7 @@
+# Keep secrets and local/runtime files out of the image
+.env
+.git
+cache/
+__pycache__/
+*.pyc
+screenshots/

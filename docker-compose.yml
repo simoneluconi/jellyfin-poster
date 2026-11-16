@@ -12,7 +12,15 @@ services:
       DEBUG: "False"
       JELLYFIN_URL: "http://JELLYFIN_URL:PORT" # http://IP:8096
       JELLYFIN_API_KEY: "YOUR_API_KEY"
+      POSTER_DURATION: "30"
+      SHOW_TITLE: "auto"
+      SHOW_LOGOS: "True"
+      SYNC_SCREENS: "False"
 
     # Expose the application port to the host
     ports:
       - "5000:5000"
+
+    # Keep title detection results across container restarts/rebuilds
+    volumes:
+      - ./cache:/app/cache
