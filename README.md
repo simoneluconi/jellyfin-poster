@@ -33,9 +33,15 @@ Designed with a premium "Cinema Grade" aesthetic, featuring smooth animations, m
 
 ## 📸 Screenshots
 
-| Idle Mode (Carousel) |
+| Carousel: title logo from Jellyfin | Carousel: title already on the poster (hidden automatically) |
+|:---:|:---:|
+| ![Carousel with logo](./screenshots/carousel-logo.jpg) | ![Carousel, title on poster](./screenshots/carousel-title-on-poster.jpg) |
+| **Now Playing: movie** | **Now Playing: TV episode, paused** |
+| ![Now Playing](./screenshots/now-playing.jpg) | ![Now Playing episode paused](./screenshots/now-playing-episode-paused.jpg) |
+
+| Standard (landscape) screen |
 |:---:|
-| ![Carousel](./screenshots/screen.jpg) |
+| ![Landscape](./screenshots/landscape.jpg) |
 
 ---
 
