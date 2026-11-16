@@ -148,24 +148,6 @@ All movies are analysed once in the background when the server starts (about 0.2
 
 ---
 
-## 📂 Project Structure
-
-```text
-jellyfin-poster/
-├── app.py              # Main Python/Flask backend logic
-├── title_detection.py  # Finds the title logo printed on a poster (SHOW_TITLE=auto)
-├── requirements.txt    # Python dependencies
-├── Dockerfile          # Container image
-├── docker-compose.yml  # Docker setup (configuration + cache volume)
-├── .env                # Private configuration (Excluded from Git)
-├── .env.example        # Public configuration template
-├── cache/              # Title detection results (created at runtime, excluded from Git)
-└── templates/
-    └── poster.html     # The Frontend (HTML/CSS/JS)
-```
-
----
-
 ## 🧰 Troubleshooting
 
 * **The page stays on a black screen / "Loading..."**: the server can't reach Jellyfin. Check `JELLYFIN_URL` and that the API key is still valid; errors are printed in the server console.
