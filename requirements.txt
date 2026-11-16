@@ -1,3 +1,6 @@
 flask
 requests
 python-dotenv
+# Needed only for SHOW_TITLE=auto (detects the title logo printed on posters)
+opencv-python-headless
+numpy
